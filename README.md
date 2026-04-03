@@ -21,13 +21,14 @@ This project focuses on analyzing customer sales data using SQL to extract meani
 ---
 
 ## 📂 Project Structure
+```
 Customer-Sales-Analysis
 │── dataset/
 │ └── sales_data.csv
 │── sql/
 │ └── queries.sql
 │── README.md
-
+```
 
 ---
 
