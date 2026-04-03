@@ -1,4 +1,4 @@
-# 📊 Customer Sales Analysis using SQL
+# 📊 Customer Sales Data Analysis using SQL
 
 ## 📌 Project Description
 This project focuses on analyzing customer sales data using SQL to extract meaningful business insights. It includes customer spending analysis, segmentation, and sales performance evaluation.
