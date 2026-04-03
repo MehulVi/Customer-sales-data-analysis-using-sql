@@ -70,7 +70,7 @@ SELECT
         ELSE 'New'
     END AS customer_segment
 FROM customer_spending;
-
+```
 ---
 
 ## 🧠 SQL Concepts Used
