@@ -1,0 +1,132 @@
+WITH category_sales AS (
+    SELECT 
+        p.category,
+        SUM(sales) AS total_sales
+    FROM gold.fact_sales AS f
+    LEFT JOIN gold.dim_products AS p
+        ON f.product_id = p.product_id
+    GROUP BY p.category
+)
+SELECT 
+category,
+total_sales,
+sum(total_sales) over () overall_sales,
+concat(round ((cast(total_sales as float ) / sum(total_sales) over ())*100, 2),'%') as percentage
+FROM category_sales
+order by total_sales desc;
+
+with product_segment as(
+select 
+product_id,
+product_name,
+cost,
+case when cost <100 then 'Below 100'
+when cost between 100 and 500 then '100-500'
+when cost between 500 and 1000 then '500-1000'
+else 'greater than 1000'
+end cost_range
+from gold.dim_products
+)
+
+select 
+cost_range,
+count(product_id) as total_product 
+from product_segment
+group by cost_range
+order by total_product desc;
+
+
+
+WITH customer_spending AS (
+    SELECT 
+        customer_id,
+        SUM(sales) AS total_spending,
+        MIN(order_date) AS first_order,
+        MAX(order_date) AS last_order,
+        TIMESTAMPDIFF(MONTH, MIN(order_date), MAX(order_date)) AS lifespan
+    FROM gold.fact_sales
+    GROUP BY customer_id
+)
+
+SELECT
+    customer_segment,
+    COUNT(customer_id) AS total_customers
+FROM (
+    SELECT 
+        customer_id,   
+        total_spending,
+        CASE 
+            WHEN total_spending > 5000 AND lifespan >= 12 THEN 'VIP'
+            WHEN total_spending <= 5000 AND lifespan >= 12 THEN 'Regular'
+            ELSE 'New'
+        END AS customer_segment
+    FROM customer_spending
+) t
+GROUP BY customer_segment
+ORDER BY total_customers desc; 
+
+with base_query as (
+select 
+f.order_number,
+f.product_id,
+f.order_date,
+f.sales,
+f.quantity,
+c.customer_id,
+c.customer_number,
+concat(c.first_name,' ',c.last_name) as full_name,
+timestampdiff(year, c.birthdate, now()) as age
+from gold.fact_sales as f
+left join gold.dim_customers as c
+on c.customer_id = f.customer_id
+)
+, customer_aggregattion as (
+select 
+customer_id,
+customer_number,
+full_name,
+age,
+count(distinct order_number) as total_order,
+sum(sales) as total_sales,
+sum(quantity) as total_quantity,
+count(distinct product_id) as product_id,
+max(order_date) as last_order_date,
+timestampdiff(month, min(order_date),max(ordeR_date))as life_span
+from base_query
+group by
+customer_id,
+customer_number,
+full_name,
+age
+)
+
+select 
+customer_id,
+customer_number,
+full_name,
+age,
+case when age <20 then 'under-20'
+when age between 20 and 29 then '20-29'
+when age between 30 and 39 then '30-39'
+when age between 40 and 49 then '40-49'
+else 'above 50'end age_grp,
+
+case when life_span >=12 and total_sales > 5000 then 'VIP'
+when life_span >= 12 and total_sales <=5000 then 'Regular'
+else 'new'
+end as life_span_grp,
+total_order,
+total_sales,
+total_quantity,
+product_id,
+last_order_date,
+timestampdiff(month, last_order_date, now()) as recency,
+case when total_order = 0 then 0
+else
+total_sales/total_order end as avg_order_values,
+life_span,
+case when life_span =0 then 0 
+else total_sales/life_span
+end as avg_mothly_spend
+from customer_aggregattion
+
