@@ -100,6 +100,9 @@ FROM customer_spending;
 
 ## 👨‍💻 Author
 **Mehul Vishwakarma**  
+Aspiring Data Analyst
+
+🔗LinkedIn: https://www.linkedin.com/in/mehul-vishwakarma-9a1b2431a
 🔗 GitHub: https://github.com/MehulVi  
 
 ---
